@@ -6,7 +6,6 @@ describe('a AddedThread entities', () => {
     const payload = {
       id: 'thread-123',
       title: 'some thread title here',
-      body: 'blabalbal',
       // no owner test
     };
 

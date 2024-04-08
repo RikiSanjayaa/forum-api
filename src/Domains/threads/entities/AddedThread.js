@@ -3,7 +3,7 @@ class AddedThread {
     this._verifyPayload(payload);
 
     const {
-      id, title, body, owner,
+      id, title, owner,
     } = payload;
 
     this.id = id;
@@ -12,7 +12,7 @@ class AddedThread {
   }
 
   _verifyPayload({
-    id, title, body, owner,
+    id, title, owner,
   }) {
     if (!id || !title || !owner) {
       throw new Error('ADDED_THREAD.NOT_CONTAIN_NEEDED_PROPERTY');
