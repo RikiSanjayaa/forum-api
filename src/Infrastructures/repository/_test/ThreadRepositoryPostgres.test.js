@@ -57,4 +57,29 @@ describe('ThreadRepositoryPostgres', () => {
       }));
     });
   });
+
+  describe('getThread function', () => {
+    it('should throw error 404 when thread id is not found', async () => {
+      // Arrange
+      const fakeThreadId = 'thread-1234';
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
+
+      // Action and Assert
+      await expect(threadRepositoryPostgres.getThread(fakeThreadId)).rejects.toThrow('Thread tidak ditemukan');
+    });
+
+    it('should return getted thread correctly', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
+      const realThreadId = 'thread-123';
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
+
+      // Action
+      const gettedThread = await threadRepositoryPostgres.getThread(realThreadId);
+
+      // Assert
+      expect(gettedThread).toBeDefined();
+    });
+  });
 });
