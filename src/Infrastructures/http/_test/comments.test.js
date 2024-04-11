@@ -125,4 +125,71 @@ describe('/threads/{threadId}/comments endpoint', () => {
       expect(responseJson.message).toEqual('comment tidak boleh kosong');
     });
   });
+
+  describe('when DELETE /threads/{threadId}/comments/{commentId}', () => {
+    it('should delete comment properly', async () => {
+      // Arrange
+      const requestPayload = {
+        content: 'a comment',
+      };
+      const server = await createServer(container);
+      // login user and get threadId
+      await server.inject({
+        method: 'POST',
+        url: '/users',
+        payload: {
+          username: 'dicoding',
+          password: 'secret',
+          fullname: 'Dicoding Indonesia',
+        },
+      });
+      const auth = await server.inject({
+        method: 'POST',
+        url: '/authentications',
+        payload: {
+          username: 'dicoding',
+          password: 'secret',
+        },
+      });
+      const token = auth.result.data.accessToken;
+      const thread = await server.inject({
+        method: 'POST',
+        url: '/threads',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        payload: {
+          title: 'a thread title',
+          body: 'some thread body',
+        },
+      });
+      const threadJson = JSON.parse(thread.payload);
+      const threadId = threadJson.data.addedThread.id;
+
+      const comment = await server.inject({
+        method: 'POST',
+        url: `/threads/${threadId}/comments`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        payload: requestPayload,
+      });
+      const commentJson = JSON.parse(comment.payload);
+      const commentId = commentJson.data.addedComment.id;
+
+      // Action
+      const response = await server.inject({
+        method: 'DELETE',
+        url: `/threads/${threadId}/comments/${commentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Assert
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(200);
+      expect(responseJson.status).toEqual('success');
+    });
+  });
 });
