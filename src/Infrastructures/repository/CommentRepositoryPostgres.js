@@ -10,24 +10,24 @@ class CommentRepositoryPostgres extends CommentRepository {
     this._idGenerator = idGenerator;
   }
 
-  async _verifyThreadId(threadId) {
-    const verifyQuery = {
-      text: 'SELECT id FROM threads WHERE id = $1',
+  async getComments(threadId) {
+    const query = {
+      text: `SELECT comments.id, users.username AS username, comments.date,
+            CASE WHEN comments.is_deleted = true THEN '**komentar telah dihapus**' ELSE comments.content END AS content
+            FROM comments
+            LEFT JOIN users ON comments.owner = users.id 
+            WHERE comments.thread_id = $1`,
       values: [threadId],
     };
-    const verifyResult = await this._pool.query(verifyQuery);
 
-    if (verifyResult.rowCount === 0) {
-      throw new NotFoundError('Thread tidak ditemukan');
-    }
+    const comments = await this._pool.query(query);
+
+    return comments.rows;
   }
 
-  async addComment(addCommentPayload, owner, threadId) {
+  async addComment(addCommentPayload, owner, threadId, date, isDeleted) {
     const { content } = addCommentPayload;
     const id = `comment-${this._idGenerator()}`;
-    const date = new Date().toISOString();
-    const isDeleted = false;
-    await this._verifyThreadId(threadId);
 
     const query = {
       text: 'INSERT INTO comments VALUES($1, $2, $3, $4, $5, $6) RETURNING id, content, owner',
@@ -38,8 +38,7 @@ class CommentRepositoryPostgres extends CommentRepository {
     return new AddedComment({ ...result.rows[0] });
   }
 
-  async deleteComment(threadId, commentId, owner) {
-    await this._verifyThreadId(threadId);
+  async deleteComment(commentId, owner) {
     const verifyQuery = {
       text: 'SELECT id, owner FROM comments WHERE id = $1',
       values: [commentId],
@@ -58,7 +57,7 @@ class CommentRepositoryPostgres extends CommentRepository {
 
     // soft delete comment
     const query = {
-      text: "UPDATE comments SET is_deleted = true, content = '**komentar telah dihapus**' WHERE ID = $1",
+      text: 'UPDATE comments SET is_deleted = true WHERE ID = $1',
       values: [commentId],
     };
     await this._pool.query(query);

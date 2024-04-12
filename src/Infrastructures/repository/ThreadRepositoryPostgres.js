@@ -10,10 +10,21 @@ class ThreadRepositoryPostgres extends ThreadRepository {
     this._idGenerator = idGenerator;
   }
 
-  async addThread(addThreadPayload, owner) {
+  async verifyThreadId(threadId) {
+    const verifyQuery = {
+      text: 'SELECT id FROM threads WHERE id = $1',
+      values: [threadId],
+    };
+    const verifyResult = await this._pool.query(verifyQuery);
+
+    if (verifyResult.rowCount === 0) {
+      throw new NotFoundError('Thread tidak ditemukan');
+    }
+  }
+
+  async addThread(addThreadPayload, owner, date) {
     const { title, body } = addThreadPayload;
     const id = `thread-${this._idGenerator()}`;
-    const date = new Date().toISOString();
 
     const query = {
       text: 'INSERT INTO threads VALUES($1, $2, $3, $4, $5) RETURNING id, title, owner',
@@ -25,7 +36,9 @@ class ThreadRepositoryPostgres extends ThreadRepository {
     return new AddedThread({ ...result.rows[0] });
   }
 
-  async getThread(threadId) {
+  async getThread(threadId, comments) {
+    await this.verifyThreadId(threadId);
+
     const query = {
       text: `SELECT threads.id, threads.title, threads.body, users.username AS username, threads.date
             FROM threads 
@@ -34,22 +47,9 @@ class ThreadRepositoryPostgres extends ThreadRepository {
       values: [threadId],
     };
 
-    const commentQuery = {
-      text: `SELECT comments.id, users.username AS username, comments.date, comments.content
-            FROM comments
-            LEFT JOIN users ON comments.owner = users.id 
-            WHERE comments.thread_id = $1`,
-      values: [threadId],
-    };
-
     const result = await this._pool.query(query);
-    const commentResult = await this._pool.query(commentQuery);
 
-    if (!result.rowCount) {
-      throw new NotFoundError('Thread tidak ditemukan');
-    }
-
-    return new GettedThread({ ...result.rows[0], comments: commentResult.rows });
+    return new GettedThread({ ...result.rows[0], comments });
   }
 }
 

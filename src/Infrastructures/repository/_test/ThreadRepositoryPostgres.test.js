@@ -1,3 +1,4 @@
+const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const AddedThread = require('../../../Domains/threads/entities/AddedThread');
@@ -9,6 +10,7 @@ describe('ThreadRepositoryPostgres', () => {
   afterEach(async () => {
     await ThreadsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
+    await CommentsTableTestHelper.cleanTable();
   });
 
   afterAll(async () => {
@@ -26,9 +28,10 @@ describe('ThreadRepositoryPostgres', () => {
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       const owner = 'user-123';
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, fakeIdGenerator);
+      const date = new Date().toISOString();
 
       // Action
-      await threadRepositoryPostgres.addThread(addThread, owner);
+      await threadRepositoryPostgres.addThread(addThread, owner, date);
 
       // Assert
       const threads = await ThreadsTableTestHelper.findThreadById('thread-123');
@@ -42,12 +45,13 @@ describe('ThreadRepositoryPostgres', () => {
         body: 'somebody....',
       });
       const fakeId = () => '123'; // stub
-      await UsersTableTestHelper.addUser({ username: 'dicoding' });
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
       const owner = 'user-123';
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, fakeId);
+      const date = new Date().toISOString();
 
       // Action
-      const addedThread = await threadRepositoryPostgres.addThread(addThread, owner);
+      const addedThread = await threadRepositoryPostgres.addThread(addThread, owner, date);
 
       // Assert
       expect(addedThread).toStrictEqual(new AddedThread({
@@ -74,12 +78,15 @@ describe('ThreadRepositoryPostgres', () => {
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
       const realThreadId = 'thread-123';
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
+      const comments = [];
 
       // Action
-      const gettedThread = await threadRepositoryPostgres.getThread(realThreadId);
+      const gettedThread = await threadRepositoryPostgres.getThread(realThreadId, comments);
 
       // Assert
       expect(gettedThread).toBeDefined();
+      expect(gettedThread.id).toStrictEqual(realThreadId);
+      expect(gettedThread.comments).toStrictEqual(comments);
     });
   });
 });

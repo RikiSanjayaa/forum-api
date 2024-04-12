@@ -18,21 +18,6 @@ describe('CommentRepositoryPostgres', () => {
   });
 
   describe('addComment function', () => {
-    it('should throw NotFoundError if threadId is not found', async () => {
-      // Arrange
-      const addCommentPayload = new AddComment({
-        content: 'a comment',
-      });
-      const fakeIdGenerator = () => '123'; // stub
-      await UsersTableTestHelper.addUser({ id: 'user-123' });
-      const owner = 'user-123';
-      const threadId = 'thread-123';
-      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
-
-      // Action and Assert
-      await expect(commentRepositoryPostgres.addComment(addCommentPayload, owner, threadId)).rejects.toThrow('Thread tidak ditemukan');
-    });
-
     it('should persist add comment and return added comment correctly', async () => {
       // Arrange
       const addCommentPayload = new AddComment({
@@ -43,34 +28,18 @@ describe('CommentRepositoryPostgres', () => {
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
       const owner = 'user-123';
       const threadId = 'thread-123';
-      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
-
-      // Action
-      await commentRepositoryPostgres.addComment(addCommentPayload, owner, threadId);
-
-      // Assert
-      const comments = await CommentsTableTestHelper.findCommentById('comment-123');
-      expect(comments).toHaveLength(1);
-    });
-
-    it('should return added comment correctly', async () => {
-      // Arrange
-      const addCommentPayload = new AddComment({
-        content: 'a comment',
-      });
-      const fakeIdGenerator = () => '123'; // stub
-      await UsersTableTestHelper.addUser({ username: 'dicoding' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
-
-      const owner = 'user-123';
-      const threadId = 'thread-123';
+      const date = new Date().toISOString();
+      const isDeleted = false;
       const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
 
       // Action
       const addedComment = await commentRepositoryPostgres
-        .addComment(addCommentPayload, owner, threadId);
+        .addComment(addCommentPayload, owner, threadId, date, isDeleted);
 
       // Assert
+      const comment = await CommentsTableTestHelper.findCommentById('comment-123');
+      expect(comment).toHaveLength(1);
+      expect(comment[0].content).toStrictEqual(addCommentPayload.content);
       expect(addedComment).toStrictEqual(new AddedComment({
         id: 'comment-123',
         content: 'a comment',
@@ -80,20 +49,6 @@ describe('CommentRepositoryPostgres', () => {
   });
 
   describe('deleteComment function', () => {
-    it('should throw NotFound error if threadId is not found', async () => {
-      // Arrange
-      const fakeThreadId = 'xxx';
-      const fakeCommentId = 'xxx';
-      const fakeIdGenerator = () => '123'; // stub
-      await UsersTableTestHelper.addUser({ id: 'user-123' });
-      const owner = 'user-123';
-      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
-
-      // Action and Assert
-      await expect(commentRepositoryPostgres.deleteComment(fakeThreadId, fakeCommentId, owner))
-        .rejects.toThrow('Thread tidak ditemukan');
-    });
-
     it('should throw NotFound error if commentId is not found', async () => {
       // Arrange
       const fakeIdGenerator = () => '123'; // stub
@@ -101,12 +56,11 @@ describe('CommentRepositoryPostgres', () => {
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
 
       const owner = 'user-123';
-      const threadId = 'thread-123';
       const fakeCommentId = 'xxx';
       const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
 
       // Action & Assert
-      await expect(commentRepositoryPostgres.deleteComment(threadId, fakeCommentId, owner))
+      await expect(commentRepositoryPostgres.deleteComment(fakeCommentId, owner))
         .rejects.toThrow('Comment tidak ditemukan');
     });
 
@@ -126,10 +80,10 @@ describe('CommentRepositoryPostgres', () => {
 
       // adding real comment
       const addedComment = await commentRepositoryPostgres
-        .addComment(addCommentPayload, owner, threadId);
+        .addComment(addCommentPayload, owner, threadId, new Date().toISOString(), false);
 
       // Action and Assert
-      await expect(commentRepositoryPostgres.deleteComment(threadId, addedComment.id, fakeOwner))
+      await expect(commentRepositoryPostgres.deleteComment(addedComment.id, fakeOwner))
         .rejects.toThrow('Anda bukan pemilik dari comment ini');
     });
 
@@ -140,7 +94,8 @@ describe('CommentRepositoryPostgres', () => {
       });
       const fakeIdGenerator = () => '123'; // stub
       await UsersTableTestHelper.addUser({ username: 'dicoding' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
+      const date = new Date().toISOString();
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date });
 
       const owner = 'user-123';
       const threadId = 'thread-123';
@@ -148,13 +103,15 @@ describe('CommentRepositoryPostgres', () => {
 
       // adding real comment
       const addedComment = await commentRepositoryPostgres
-        .addComment(addCommentPayload, owner, threadId);
+        .addComment(addCommentPayload, owner, threadId, date, false);
 
       // Action
-      await commentRepositoryPostgres.deleteComment(threadId, addedComment.id, owner);
+      await commentRepositoryPostgres.deleteComment(addedComment.id, owner);
 
       // Assert
-      const deletedComment = await CommentsTableTestHelper.findCommentById(addedComment.id);
+      const deletedComment = await commentRepositoryPostgres.getComments(threadId);
+      console.log(deletedComment);
+      expect(deletedComment).toHaveLength(1);
       expect(deletedComment[0].id).toStrictEqual(addedComment.id);
       expect(deletedComment[0].content).toStrictEqual('**komentar telah dihapus**');
     });

@@ -1,4 +1,5 @@
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
+const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 const DeleteCommentUseCase = require('../DeleteCommentUseCase');
 
 describe('DeleteCommentUseCase', () => {
@@ -9,11 +10,15 @@ describe('DeleteCommentUseCase', () => {
     const owner = 'user-123';
 
     const mockCommentRepository = new CommentRepository();
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.verifyThreadId = jest.fn()
+      .mockImplementation(() => Promise.resolve());
     mockCommentRepository.deleteComment = jest.fn()
       .mockImplementation(() => Promise.resolve());
 
     const deleteCommentUseCase = new DeleteCommentUseCase({
       commentRepository: mockCommentRepository,
+      threadRepository: mockThreadRepository,
     });
 
     // Action
@@ -21,6 +26,6 @@ describe('DeleteCommentUseCase', () => {
 
     // Assert
     expect(mockCommentRepository.deleteComment)
-      .toHaveBeenCalledWith(threadId, commentId, owner);
+      .toHaveBeenCalledWith(commentId, owner);
   });
 });

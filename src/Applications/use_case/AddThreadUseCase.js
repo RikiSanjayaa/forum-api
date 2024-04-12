@@ -7,7 +7,8 @@ class AddThreadUseCase {
 
   async execute(useCasePayload, owner) {
     const addThreadPayload = new AddThread(useCasePayload);
-    return this._threadRepository.addThread(addThreadPayload, owner);
+    const date = new Date().toISOString();
+    return this._threadRepository.addThread(addThreadPayload, owner, date);
   }
 }
 

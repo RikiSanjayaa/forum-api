@@ -26,8 +26,11 @@ describe('AddThreadUseCase', () => {
     /** creating use case instance */
     const addThreadUseCase = new AddThreadUseCase({ threadRepository: mockThreadRepository });
 
+    // date parameter
+    const date = new Date().toISOString();
+
     // Action
-    const addedThread = await addThreadUseCase.execute(useCasePayload, mockAddedThread.owner);
+    const addedThread = await addThreadUseCase.execute(useCasePayload, mockAddedThread.owner, date);
 
     // Assert
     expect(addedThread).toStrictEqual(mockAddedThread);
@@ -35,6 +38,6 @@ describe('AddThreadUseCase', () => {
     expect(mockThreadRepository.addThread).toHaveBeenCalledWith(new AddThread({
       title: useCasePayload.title,
       body: useCasePayload.body,
-    }), mockAddedThread.owner);
+    }), mockAddedThread.owner, date);
   });
 });
