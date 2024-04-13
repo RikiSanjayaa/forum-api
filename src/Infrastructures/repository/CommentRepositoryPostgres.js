@@ -12,17 +12,36 @@ class CommentRepositoryPostgres extends CommentRepository {
 
   async getComments(threadId) {
     const query = {
-      text: `SELECT comments.id, users.username AS username, comments.date,
-            CASE WHEN comments.is_deleted = true THEN '**komentar telah dihapus**' ELSE comments.content END AS content
-            FROM comments
-            LEFT JOIN users ON comments.owner = users.id 
-            WHERE comments.thread_id = $1`,
+      text: 'SELECT * FROM comments WHERE thread_id = $1',
+      /** text: `SELECT comments.id, users.username AS username, comments.date,
+             CASE WHEN comments.is_deleted = true THEN '**komentar telah dihapus**'
+             ELSE comments.content END AS content
+             FROM comments
+             LEFT JOIN users ON comments.owner = users.id
+             WHERE comments.thread_id = $1`, */
       values: [threadId],
     };
 
     const comments = await this._pool.query(query);
 
     return comments.rows;
+  }
+
+  async verifyCommentOwner(commentId, owner) {
+    const query = {
+      text: 'SELECT comments.owner FROM comments WHERE comments.id = $1',
+      values: [commentId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Comment tidak ditemukan');
+    }
+
+    if (result.rows[0].owner !== owner) {
+      throw new AuthorizationError('Anda bukan pemilik dari comment ini');
+    }
   }
 
   async addComment(addCommentPayload, owner, threadId, date, isDeleted) {
@@ -38,24 +57,7 @@ class CommentRepositoryPostgres extends CommentRepository {
     return new AddedComment({ ...result.rows[0] });
   }
 
-  async deleteComment(commentId, owner) {
-    const verifyQuery = {
-      text: 'SELECT id, owner FROM comments WHERE id = $1',
-      values: [commentId],
-    };
-    const verifyResult = await this._pool.query(verifyQuery);
-
-    // verify commentId
-    if (verifyResult.rowCount === 0) {
-      throw new NotFoundError('Comment tidak ditemukan');
-    }
-
-    // verify owner
-    if (verifyResult.rows[0].owner !== owner) {
-      throw new AuthorizationError('Anda bukan pemilik dari comment ini');
-    }
-
-    // soft delete comment
+  async deleteComment(commentId) {
     const query = {
       text: 'UPDATE comments SET is_deleted = true WHERE ID = $1',
       values: [commentId],

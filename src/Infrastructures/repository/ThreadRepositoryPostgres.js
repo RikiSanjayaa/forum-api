@@ -36,9 +36,7 @@ class ThreadRepositoryPostgres extends ThreadRepository {
     return new AddedThread({ ...result.rows[0] });
   }
 
-  async getThread(threadId, comments) {
-    await this.verifyThreadId(threadId);
-
+  async getThread(threadId) {
     const query = {
       text: `SELECT threads.id, threads.title, threads.body, users.username AS username, threads.date
             FROM threads 
@@ -49,7 +47,7 @@ class ThreadRepositoryPostgres extends ThreadRepository {
 
     const result = await this._pool.query(query);
 
-    return new GettedThread({ ...result.rows[0], comments });
+    return result.rows[0];
   }
 }
 
