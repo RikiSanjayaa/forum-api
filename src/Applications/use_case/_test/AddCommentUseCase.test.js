@@ -11,7 +11,7 @@ describe('AddCommentUseCase', () => {
       content: 'a comment',
     };
 
-    const fakeThreadId = 'thread-123';
+    const threadId = 'thread-123';
 
     const mockAddedComment = new AddedComment({
       id: 'comment-123',
@@ -39,13 +39,18 @@ describe('AddCommentUseCase', () => {
 
     // Action
     const addedComment = await addCommentUseCase
-      .execute(useCasePayload, mockAddedComment.owner, fakeThreadId);
+      .execute(useCasePayload, mockAddedComment.owner, threadId);
 
     // Assert
-    expect(addedComment).toStrictEqual(mockAddedComment);
+    expect(addedComment).toStrictEqual(new AddedComment({
+      id: 'comment-123',
+      content: 'a comment',
+      owner: 'user-123',
+    }));
 
+    expect(mockThreadRepository.verifyThreadId).toHaveBeenCalledWith(threadId);
     expect(mockCommentRepository.addComment).toHaveBeenCalledWith(new AddComment({
       content: useCasePayload.content,
-    }), mockAddedComment.owner, fakeThreadId, date, isDeleted);
+    }), mockAddedComment.owner, threadId, date, isDeleted);
   });
 });

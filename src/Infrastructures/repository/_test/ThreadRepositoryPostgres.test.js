@@ -24,7 +24,8 @@ describe('ThreadRepositoryPostgres', () => {
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
 
       // Action and Assert
-      await expect(threadRepositoryPostgres.verifyThreadId(fakeThreadId)).rejects.toThrow('Thread tidak ditemukan');
+      await expect(threadRepositoryPostgres.verifyThreadId(fakeThreadId))
+        .rejects.toThrow('Thread tidak ditemukan');
     });
   });
 
@@ -45,8 +46,8 @@ describe('ThreadRepositoryPostgres', () => {
       await threadRepositoryPostgres.addThread(addThread, owner, date);
 
       // Assert
-      const threads = await ThreadsTableTestHelper.findThreadById('thread-123');
-      expect(threads).toHaveLength(1);
+      const thread = await ThreadsTableTestHelper.findThreadById('thread-123');
+      expect(thread).toHaveLength(1);
     });
 
     it('should return added thread correctly', async () => {
@@ -76,9 +77,11 @@ describe('ThreadRepositoryPostgres', () => {
   describe('getThread function', () => {
     it('should return getted thread correctly', async () => {
       // Arrange
-      await UsersTableTestHelper.addUser({ id: 'user-123' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
+      const owner = 'user-123';
       const realThreadId = 'thread-123';
+      const date = new Date().toISOString();
+      await UsersTableTestHelper.addUser({ id: owner });
+      await ThreadsTableTestHelper.addThread({ id: realThreadId, date, owner });
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
 
       // Action
@@ -87,6 +90,10 @@ describe('ThreadRepositoryPostgres', () => {
       // Assert
       expect(gettedThread).toBeDefined();
       expect(gettedThread.id).toStrictEqual(realThreadId);
+      expect(gettedThread.title).toStrictEqual('title thread');
+      expect(gettedThread.body).toStrictEqual('isi dari thread');
+      expect(gettedThread.username).toStrictEqual('dicoding');
+      expect(gettedThread.date).toStrictEqual(date);
     });
   });
 });

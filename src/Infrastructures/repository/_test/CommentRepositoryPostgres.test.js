@@ -17,6 +17,26 @@ describe('CommentRepositoryPostgres', () => {
     await pool.end();
   });
 
+  describe('getComments function', () => {
+    it('should return comments with the same thread id as foreign key', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString(), owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comments-123', date: new Date().toISOString(), owner: 'user-123' });
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const comments = await commentRepositoryPostgres.getComments('thread-123');
+
+      // Assert
+      expect(comments).toHaveLength(1);
+      expect(comments[0].id).toStrictEqual('comments-123');
+      expect(comments[0].username).toStrictEqual('dicoding');
+      expect(comments[0].content).toStrictEqual('a comment');
+      expect(comments[0].is_deleted).toBeFalsy();
+    });
+  });
+
   describe('verifyCommentOwner function', () => {
     it('should throw NotFoundError if commentId is not found', async () => {
       // Arrange

@@ -9,14 +9,13 @@ describe('GetThreadUseCase', () => {
     const mockThreadId = 'thread-123';
     const mockComments = [];
 
-    const mockGettedThread = new GettedThread({
+    const mockRawThread = {
       id: 'thread-123',
       title: 'a thread title',
       body: 'a thread body',
       date: 'some date here',
       username: 'RikiSanjaya',
-      comments: [],
-    });
+    };
 
     /** creating dependency of use case */
     const mockThreadRepository = new ThreadRepository();
@@ -27,7 +26,7 @@ describe('GetThreadUseCase', () => {
     mockThreadRepository.verifyThreadId = jest.fn()
       .mockImplementation(() => Promise.resolve());
     mockThreadRepository.getThread = jest.fn()
-      .mockImplementation(() => Promise.resolve(mockGettedThread));
+      .mockImplementation(() => Promise.resolve(mockRawThread));
 
     /** creating use case instance */
     const getThreadUseCase = new GetThreadUseCase({
@@ -39,14 +38,16 @@ describe('GetThreadUseCase', () => {
     const gettedThread = await getThreadUseCase.execute(mockThreadId);
 
     // Assert
-    expect(gettedThread).toStrictEqual(mockGettedThread);
+    expect(gettedThread).toStrictEqual(new GettedThread({
+      ...mockRawThread, comments: mockComments,
+    }));
     expect(mockCommentRepository.getComments).toHaveBeenCalledWith(mockThreadId);
+    expect(mockThreadRepository.verifyThreadId).toHaveBeenCalledWith(mockThreadId);
     expect(mockThreadRepository.getThread).toHaveBeenCalledWith(mockThreadId);
   });
 
   it('should return deleted comment correctly', async () => {
     // Arrange
-    const mockThreadId = 'thread-123';
     const mockRawComments = [
       {
         id: 'comment-123',
@@ -63,7 +64,22 @@ describe('GetThreadUseCase', () => {
         is_deleted: false,
       },
     ];
-    const mockResolvedComments = [
+
+    /** creating dependency of use case */
+    const mockThreadRepository = new ThreadRepository();
+    const mockCommentRepository = new CommentRepository();
+
+    /** creating use case instance */
+    const getThreadUseCase = new GetThreadUseCase({
+      threadRepository: mockThreadRepository,
+      commentRepository: mockCommentRepository,
+    });
+
+    // Action
+    const resolvedComments = await getThreadUseCase._filterDeletedComments(mockRawComments);
+
+    // Assert
+    expect(resolvedComments).toStrictEqual([
       {
         id: 'comment-123',
         username: 'RikiSanjaya',
@@ -76,25 +92,6 @@ describe('GetThreadUseCase', () => {
         date: '2024',
         content: 'sebuah comment',
       },
-    ];
-
-    /** creating dependency of use case */
-    const mockThreadRepository = new ThreadRepository();
-    const mockCommentRepository = new CommentRepository();
-
-    mockCommentRepository.getComments = jest.fn()
-      .mockImplementation(() => Promise.resolve(mockRawComments));
-
-    /** creating use case instance */
-    const getThreadUseCase = new GetThreadUseCase({
-      threadRepository: mockThreadRepository,
-      commentRepository: mockCommentRepository,
-    });
-
-    // Action
-    const resolvedComments = await getThreadUseCase._filterDeletedComments(mockRawComments);
-
-    // Assert
-    expect(resolvedComments).toStrictEqual(mockResolvedComments);
+    ]);
   });
 });
