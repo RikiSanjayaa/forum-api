@@ -17,6 +17,17 @@ describe('ThreadRepositoryPostgres', () => {
     await pool.end();
   });
 
+  describe('verifyThreadId function', () => {
+    it('should throw error 404 when thread id is not found', async () => {
+      // Arrange
+      const fakeThreadId = 'xxx';
+      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
+
+      // Action and Assert
+      await expect(threadRepositoryPostgres.verifyThreadId(fakeThreadId)).rejects.toThrow('Thread tidak ditemukan');
+    });
+  });
+
   describe('addThread function', () => {
     it('should persist add thread and return added thread correctly', async () => {
       // Arrange
@@ -63,30 +74,19 @@ describe('ThreadRepositoryPostgres', () => {
   });
 
   describe('getThread function', () => {
-    it('should throw error 404 when thread id is not found', async () => {
-      // Arrange
-      const fakeThreadId = 'thread-1234';
-      const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
-
-      // Action and Assert
-      await expect(threadRepositoryPostgres.getThread(fakeThreadId)).rejects.toThrow('Thread tidak ditemukan');
-    });
-
     it('should return getted thread correctly', async () => {
       // Arrange
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
       const realThreadId = 'thread-123';
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
-      const comments = [];
 
       // Action
-      const gettedThread = await threadRepositoryPostgres.getThread(realThreadId, comments);
+      const gettedThread = await threadRepositoryPostgres.getThread(realThreadId);
 
       // Assert
       expect(gettedThread).toBeDefined();
       expect(gettedThread.id).toStrictEqual(realThreadId);
-      expect(gettedThread.comments).toStrictEqual(comments);
     });
   });
 });

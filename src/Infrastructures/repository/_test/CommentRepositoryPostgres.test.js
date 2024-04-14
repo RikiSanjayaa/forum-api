@@ -17,6 +17,35 @@ describe('CommentRepositoryPostgres', () => {
     await pool.end();
   });
 
+  describe('verifyCommentOwner function', () => {
+    it('should throw NotFoundError if commentId is not found', async () => {
+      // Arrange
+      const fakeCommentId = 'xxx';
+      const owner = 'user-123';
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action & Assert
+      await expect(commentRepositoryPostgres.verifyCommentOwner(fakeCommentId, owner))
+        .rejects.toThrow('Comment tidak ditemukan');
+    });
+
+    it('should throw AuthorizationError if Comment owner != current user', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ username: 'dicoding' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
+      await CommentsTableTestHelper.addComment({
+        id: 'comments-123', owner: 'user-123', date: new Date().toISOString(), threadId: 'thread-123',
+      });
+
+      const fakeOwner = 'user-1234';
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action and Assert
+      await expect(commentRepositoryPostgres.verifyCommentOwner('comments-123', fakeOwner))
+        .rejects.toThrow('Anda bukan pemilik dari comment ini');
+    });
+  });
+
   describe('addComment function', () => {
     it('should persist add comment and return added comment correctly', async () => {
       // Arrange
@@ -49,44 +78,6 @@ describe('CommentRepositoryPostgres', () => {
   });
 
   describe('deleteComment function', () => {
-    it('should throw NotFound error if commentId is not found', async () => {
-      // Arrange
-      const fakeIdGenerator = () => '123'; // stub
-      await UsersTableTestHelper.addUser({ username: 'dicoding' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
-
-      const owner = 'user-123';
-      const fakeCommentId = 'xxx';
-      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
-
-      // Action & Assert
-      await expect(commentRepositoryPostgres.deleteComment(fakeCommentId, owner))
-        .rejects.toThrow('Comment tidak ditemukan');
-    });
-
-    it('should throw AuthorizationError if Comment owner != current user', async () => {
-      // Arrange
-      const addCommentPayload = new AddComment({
-        content: 'a comment',
-      });
-      const fakeIdGenerator = () => '123'; // stub
-      await UsersTableTestHelper.addUser({ username: 'dicoding' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
-
-      const owner = 'user-123';
-      const fakeOwner = 'user-1234';
-      const threadId = 'thread-123';
-      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
-
-      // adding real comment
-      const addedComment = await commentRepositoryPostgres
-        .addComment(addCommentPayload, owner, threadId, new Date().toISOString(), false);
-
-      // Action and Assert
-      await expect(commentRepositoryPostgres.deleteComment(addedComment.id, fakeOwner))
-        .rejects.toThrow('Anda bukan pemilik dari comment ini');
-    });
-
     it('should delete comment correctly', async () => {
       // Arrange
       const addCommentPayload = new AddComment({
@@ -110,10 +101,9 @@ describe('CommentRepositoryPostgres', () => {
 
       // Assert
       const deletedComment = await commentRepositoryPostgres.getComments(threadId);
-      console.log(deletedComment);
       expect(deletedComment).toHaveLength(1);
       expect(deletedComment[0].id).toStrictEqual(addedComment.id);
-      expect(deletedComment[0].content).toStrictEqual('**komentar telah dihapus**');
+      expect(deletedComment[0].is_deleted).toBeTruthy();
     });
   });
 });

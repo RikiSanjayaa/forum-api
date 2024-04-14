@@ -12,13 +12,10 @@ class CommentRepositoryPostgres extends CommentRepository {
 
   async getComments(threadId) {
     const query = {
-      text: 'SELECT * FROM comments WHERE thread_id = $1',
-      /** text: `SELECT comments.id, users.username AS username, comments.date,
-             CASE WHEN comments.is_deleted = true THEN '**komentar telah dihapus**'
-             ELSE comments.content END AS content
+      text: `SELECT comments.id, users.username AS username, comments.date, comments.content, comments.is_deleted
              FROM comments
              LEFT JOIN users ON comments.owner = users.id
-             WHERE comments.thread_id = $1`, */
+             WHERE comments.thread_id = $1`,
       values: [threadId],
     };
 

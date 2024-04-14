@@ -1,27 +1,30 @@
 const GettedThread = require('../../Domains/threads/entities/GettedThread');
 
 class GetThreadUseCase {
-  constructor({ threadRepository, commentRepository, userRepository }) {
+  constructor({ threadRepository, commentRepository }) {
     this._threadRepository = threadRepository;
     this._commentRepository = commentRepository;
-    this._userRepository = userRepository;
   }
 
   async execute(threadId) {
-    let comments = await this._commentRepository.getComments(threadId);
-    comments = await Promise.all(comments.map(async (comment) => {
-      const { username } = await this._userRepository.getUsernameById(comment.owner);
-      return {
-        id: comment.id,
-        username,
-        date: comment.date,
-        // ubah content jika comment.is_deleted = true
-        content: comment.is_deleted === true ? '**komentar telah dihapus**' : comment.content,
-      };
-    }));
+    const rawComments = await this._commentRepository.getComments(threadId);
+    const comments = this._filterDeletedComments(rawComments);
     await this._threadRepository.verifyThreadId(threadId);
     const thread = await this._threadRepository.getThread(threadId);
     return new GettedThread({ ...thread, comments });
+  }
+
+  _filterDeletedComments(comments) {
+    return comments.map((comment) => {
+      // ubah content jika comment.is_deleted = true
+      const content = comment.is_deleted === true ? '**komentar telah dihapus**' : comment.content;
+      return {
+        id: comment.id,
+        username: comment.username,
+        date: comment.date,
+        content,
+      };
+    });
   }
 }
 
