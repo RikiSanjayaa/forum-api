@@ -12,7 +12,6 @@ describe('GetThreadUseCase', () => {
       id: 'thread-123',
       title: 'a thread title',
       body: 'a thread body',
-      date: 'some date here',
       username: 'RikiSanjaya',
     };
 
@@ -20,14 +19,12 @@ describe('GetThreadUseCase', () => {
       {
         id: 'comment-123',
         username: 'RikiSanjaya',
-        date: '2024',
         content: 'sebuah comment',
         is_deleted: true,
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
-        date: '2024',
         content: 'sebuah comment',
         is_deleted: false,
       },
@@ -37,13 +34,11 @@ describe('GetThreadUseCase', () => {
       {
         id: 'comment-123',
         username: 'RikiSanjaya',
-        date: '2024',
         content: '**komentar telah dihapus**',
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
-        date: '2024',
         content: 'sebuah comment',
       },
     ];
@@ -52,7 +47,6 @@ describe('GetThreadUseCase', () => {
       id: 'thread-123',
       title: 'a thread title',
       body: 'a thread body',
-      date: 'some date here',
       username: 'RikiSanjaya',
       comments: expectedComments,
     };
@@ -92,14 +86,12 @@ describe('GetThreadUseCase', () => {
       {
         id: 'comment-123',
         username: 'RikiSanjaya',
-        date: '2024',
         content: 'sebuah comment',
         is_deleted: true,
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
-        date: '2024',
         content: 'sebuah comment',
         is_deleted: false,
       },
@@ -123,13 +115,11 @@ describe('GetThreadUseCase', () => {
       {
         id: 'comment-123',
         username: 'RikiSanjaya',
-        date: '2024',
         content: '**komentar telah dihapus**',
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
-        date: '2024',
         content: 'sebuah comment',
       },
     ]);

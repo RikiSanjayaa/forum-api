@@ -23,8 +23,7 @@ describe('AddCommentUseCase', () => {
     const mockCommentRepository = new CommentRepository();
     const mockThreadRepository = new ThreadRepository();
 
-    mockThreadRepository.verifyThreadId = jest.fn()
-      .mockImplementation(() => Promise.resolve());
+    mockThreadRepository.verifyThreadId = jest.fn(() => Promise.resolve());
     mockCommentRepository.addComment = jest.fn()
       .mockImplementation(() => Promise.resolve(mockAddedComment));
 
@@ -34,7 +33,6 @@ describe('AddCommentUseCase', () => {
     });
 
     // expected .addComment parameters
-    const date = new Date().toISOString();
     const isDeleted = false;
 
     // Action
@@ -51,6 +49,6 @@ describe('AddCommentUseCase', () => {
     expect(mockThreadRepository.verifyThreadId).toHaveBeenCalledWith(threadId);
     expect(mockCommentRepository.addComment).toHaveBeenCalledWith(new AddComment({
       content: useCasePayload.content,
-    }), mockAddedComment.owner, threadId, date, isDeleted);
+    }), mockAddedComment.owner, threadId, isDeleted);
   });
 });

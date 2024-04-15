@@ -22,21 +22,24 @@ describe('CommentRepositoryPostgres', () => {
     it('should return comments with the same thread id as foreign key', async () => {
       // Arrange
       await UsersTableTestHelper.addUser({ id: 'user-123' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString(), owner: 'user-123' });
-      const date = new Date().toISOString();
-      await CommentsTableTestHelper.addComment({ id: 'comments-123', date, owner: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', owner: 'user-123' });
+      const getComment = await CommentsTableTestHelper.findCommentById('comment-123');
       const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
 
       // Action
       const comments = await commentRepositoryPostgres.getComments('thread-123');
 
       // Assert
-      expect(comments).toHaveLength(1);
-      expect(comments[0].id).toStrictEqual('comments-123');
-      expect(comments[0].username).toStrictEqual('dicoding');
-      expect(comments[0].content).toStrictEqual('a comment');
-      expect(comments[0].date).toStrictEqual(date);
-      expect(comments[0].is_deleted).toBeFalsy();
+      expect(comments).toStrictEqual([
+        {
+          id: 'comment-123',
+          content: 'a comment',
+          username: 'dicoding',
+          is_deleted: false,
+          date: getComment[0].date,
+        },
+      ]);
     });
   });
 
@@ -55,9 +58,9 @@ describe('CommentRepositoryPostgres', () => {
     it('should throw AuthorizationError if Comment owner != current user', async () => {
       // Arrange
       await UsersTableTestHelper.addUser({ username: 'dicoding' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
       await CommentsTableTestHelper.addComment({
-        id: 'comments-123', owner: 'user-123', date: new Date().toISOString(), threadId: 'thread-123',
+        id: 'comments-123', owner: 'user-123', threadId: 'thread-123',
       });
 
       const fakeOwner = 'user-1234';
@@ -77,16 +80,15 @@ describe('CommentRepositoryPostgres', () => {
       });
       const fakeIdGenerator = () => '123'; // stub
       await UsersTableTestHelper.addUser({ id: 'user-123' });
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString() });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
       const owner = 'user-123';
       const threadId = 'thread-123';
-      const date = new Date().toISOString();
       const isDeleted = false;
       const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, fakeIdGenerator);
 
       // Action
       const addedComment = await commentRepositoryPostgres
-        .addComment(addCommentPayload, owner, threadId, date, isDeleted);
+        .addComment(addCommentPayload, owner, threadId, isDeleted);
 
       // Assert
       const comment = await CommentsTableTestHelper.findCommentById('comment-123');
@@ -108,8 +110,7 @@ describe('CommentRepositoryPostgres', () => {
       });
       const fakeIdGenerator = () => '123'; // stub
       await UsersTableTestHelper.addUser({ username: 'dicoding' });
-      const date = new Date().toISOString();
-      await ThreadsTableTestHelper.addThread({ id: 'thread-123', date });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
 
       const owner = 'user-123';
       const threadId = 'thread-123';
@@ -117,7 +118,7 @@ describe('CommentRepositoryPostgres', () => {
 
       // adding real comment
       const addedComment = await commentRepositoryPostgres
-        .addComment(addCommentPayload, owner, threadId, date, false);
+        .addComment(addCommentPayload, owner, threadId, false);
 
       // Action
       await commentRepositoryPostgres.deleteComment(addedComment.id, owner);

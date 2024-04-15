@@ -8,10 +8,9 @@ class AddCommentUseCase {
 
   async execute(payload, owner, threadId) {
     await this._threadRepository.verifyThreadId(threadId);
-    const date = new Date().toISOString();
     const isDeleted = false;
     const addCommentPayload = new AddComment(payload);
-    return this._commentRepository.addComment(addCommentPayload, owner, threadId, date, isDeleted);
+    return this._commentRepository.addComment(addCommentPayload, owner, threadId, isDeleted);
   }
 }
 

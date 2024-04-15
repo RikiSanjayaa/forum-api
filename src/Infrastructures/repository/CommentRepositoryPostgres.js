@@ -19,9 +19,9 @@ class CommentRepositoryPostgres extends CommentRepository {
       values: [threadId],
     };
 
-    const comments = await this._pool.query(query);
+    const { rows } = await this._pool.query(query);
 
-    return comments.rows;
+    return rows;
   }
 
   async verifyCommentOwner(commentId, owner) {
@@ -41,17 +41,17 @@ class CommentRepositoryPostgres extends CommentRepository {
     }
   }
 
-  async addComment(addCommentPayload, owner, threadId, date, isDeleted) {
+  async addComment(addCommentPayload, owner, threadId, isDeleted) {
     const { content } = addCommentPayload;
     const id = `comment-${this._idGenerator()}`;
 
     const query = {
-      text: 'INSERT INTO comments VALUES($1, $2, $3, $4, $5, $6) RETURNING id, content, owner',
-      values: [id, content, owner, date, threadId, isDeleted],
+      text: 'INSERT INTO comments VALUES($1, $2, $3, $4, $5) RETURNING id, content, owner',
+      values: [id, content, owner, threadId, isDeleted],
     };
     const result = await this._pool.query(query);
 
-    return new AddedComment({ ...result.rows[0] });
+    return new AddedComment(result.rows[0]);
   }
 
   async deleteComment(commentId) {

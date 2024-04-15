@@ -14,10 +14,6 @@ exports.up = (pgm) => {
       type: 'VARCHAR(50)',
       notNull: true,
     },
-    date: {
-      type: 'TEXT',
-      notNull: true,
-    },
     thread_id: {
       type: 'VARCHAR(50)',
       notNull: true,
@@ -25,6 +21,11 @@ exports.up = (pgm) => {
     is_deleted: {
       type: 'BOOLEAN',
       notNull: true,
+    },
+    date: {
+      type: 'TIMESTAMP',
+      notNull: true,
+      default: pgm.func('current_timestamp'),
     },
   });
   pgm.addConstraint('comments', 'fk_comments.owner_users.id', 'FOREIGN KEY(owner) REFERENCES users(id) ON DELETE CASCADE');

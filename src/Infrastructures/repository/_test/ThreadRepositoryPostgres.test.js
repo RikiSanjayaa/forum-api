@@ -41,10 +41,9 @@ describe('ThreadRepositoryPostgres', () => {
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       const owner = 'user-123';
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, fakeIdGenerator);
-      const date = new Date().toISOString();
 
       // Action
-      await threadRepositoryPostgres.addThread(addThread, owner, date);
+      await threadRepositoryPostgres.addThread(addThread, owner);
 
       // Assert
       const thread = await ThreadsTableTestHelper.findThreadById('thread-123');
@@ -61,10 +60,9 @@ describe('ThreadRepositoryPostgres', () => {
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       const owner = 'user-123';
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool, fakeId);
-      const date = new Date().toISOString();
 
       // Action
-      const addedThread = await threadRepositoryPostgres.addThread(addThread, owner, date);
+      const addedThread = await threadRepositoryPostgres.addThread(addThread, owner);
 
       // Assert
       expect(addedThread).toStrictEqual(new AddedThread({
@@ -80,9 +78,8 @@ describe('ThreadRepositoryPostgres', () => {
       // Arrange
       const owner = 'user-123';
       const realThreadId = 'thread-123';
-      const date = new Date().toISOString();
       await UsersTableTestHelper.addUser({ id: owner });
-      await ThreadsTableTestHelper.addThread({ id: realThreadId, date, owner });
+      await ThreadsTableTestHelper.addThread({ id: realThreadId, owner });
       const threadRepositoryPostgres = new ThreadRepositoryPostgres(pool);
 
       // Action
@@ -94,7 +91,6 @@ describe('ThreadRepositoryPostgres', () => {
       expect(gettedThread.title).toStrictEqual('title thread');
       expect(gettedThread.body).toStrictEqual('isi dari thread');
       expect(gettedThread.username).toStrictEqual('dicoding');
-      expect(gettedThread.date).toStrictEqual(date);
     });
   });
 });

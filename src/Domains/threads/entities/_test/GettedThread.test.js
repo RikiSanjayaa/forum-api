@@ -6,7 +6,6 @@ describe('a GettedThread entities', () => {
       id: 'thread-123',
       title: 'a thread title',
       body: 'a thread body',
-      date: 'some date here',
       username: 'RikiSanjaya',
       comments: [],
     };
@@ -18,7 +17,6 @@ describe('a GettedThread entities', () => {
     expect(gettedThread.id).toEqual(payload.id);
     expect(gettedThread.title).toEqual(payload.title);
     expect(gettedThread.body).toEqual(payload.body);
-    expect(gettedThread.date).toEqual(payload.date);
     expect(gettedThread.username).toEqual(payload.username);
     expect(gettedThread.comments).toEqual(payload.comments);
   });
