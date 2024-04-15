@@ -5,6 +5,7 @@ const AddedComment = require('../../../Domains/comments/entities/AddedComment');
 const AddComment = require('../../../Domains/comments/entities/AddComment');
 const pool = require('../../database/postgres/pool');
 const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
+const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
 
 describe('CommentRepositoryPostgres', () => {
   afterEach(async () => {
@@ -60,9 +61,9 @@ describe('CommentRepositoryPostgres', () => {
       const fakeOwner = 'user-1234';
       const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
 
-      // Action and Assert
+      // Action & Assert
       await expect(commentRepositoryPostgres.verifyCommentOwner('comments-123', fakeOwner))
-        .rejects.toThrow('Anda bukan pemilik dari comment ini');
+        .rejects.toThrowError(AuthorizationError);
     });
   });
 

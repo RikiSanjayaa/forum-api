@@ -28,10 +28,10 @@ describe('DeleteCommentUseCase', () => {
 
     // Assert
     expect(mockThreadRepository.verifyThreadId)
-      .toHaveBeenCalledWith(threadId);
+      .toHaveBeenCalledWith('thread-123');
     expect(mockCommentRepository.verifyCommentOwner)
-      .toHaveBeenCalledWith(commentId, owner);
+      .toHaveBeenCalledWith('comment-123', 'user-123');
     expect(mockCommentRepository.deleteComment)
-      .toHaveBeenCalledWith(commentId);
+      .toHaveBeenCalledWith('comment-123');
   });
 });

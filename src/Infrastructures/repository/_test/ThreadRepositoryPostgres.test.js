@@ -1,6 +1,7 @@
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
+const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 const AddedThread = require('../../../Domains/threads/entities/AddedThread');
 const AddThread = require('../../../Domains/threads/entities/AddThread');
 const pool = require('../../database/postgres/pool');
@@ -25,7 +26,7 @@ describe('ThreadRepositoryPostgres', () => {
 
       // Action and Assert
       await expect(threadRepositoryPostgres.verifyThreadId(fakeThreadId))
-        .rejects.toThrow('Thread tidak ditemukan');
+        .rejects.toThrowError(NotFoundError);
     });
   });
 

@@ -6,8 +6,7 @@ const GettedThread = require('../../../Domains/threads/entities/GettedThread');
 describe('GetThreadUseCase', () => {
   it('should orchestrating the get thread action correctly', async () => {
     // Arrange
-    const mockThreadId = 'thread-123';
-    const mockComments = [];
+    const threadId = 'thread-123';
 
     const mockRawThread = {
       id: 'thread-123',
@@ -22,7 +21,7 @@ describe('GetThreadUseCase', () => {
     const mockCommentRepository = new CommentRepository();
 
     mockCommentRepository.getComments = jest.fn()
-      .mockImplementation(() => Promise.resolve(mockComments));
+      .mockImplementation(() => Promise.resolve([]));
     mockThreadRepository.verifyThreadId = jest.fn()
       .mockImplementation(() => Promise.resolve());
     mockThreadRepository.getThread = jest.fn()
@@ -35,15 +34,15 @@ describe('GetThreadUseCase', () => {
     });
 
     // Action
-    const gettedThread = await getThreadUseCase.execute(mockThreadId);
+    const gettedThread = await getThreadUseCase.execute(threadId);
 
     // Assert
     expect(gettedThread).toStrictEqual(new GettedThread({
-      ...mockRawThread, comments: mockComments,
+      ...mockRawThread, comments: [],
     }));
-    expect(mockCommentRepository.getComments).toHaveBeenCalledWith(mockThreadId);
-    expect(mockThreadRepository.verifyThreadId).toHaveBeenCalledWith(mockThreadId);
-    expect(mockThreadRepository.getThread).toHaveBeenCalledWith(mockThreadId);
+    expect(mockCommentRepository.getComments).toHaveBeenCalledWith('thread-123');
+    expect(mockThreadRepository.verifyThreadId).toHaveBeenCalledWith('thread-123');
+    expect(mockThreadRepository.getThread).toHaveBeenCalledWith('thread-123');
   });
 
   it('should return deleted comment correctly', async () => {
