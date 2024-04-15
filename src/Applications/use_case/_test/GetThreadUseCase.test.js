@@ -16,12 +16,47 @@ describe('GetThreadUseCase', () => {
       username: 'RikiSanjaya',
     };
 
+    const expectedGettedThread = {
+      id: 'thread-123',
+      title: 'a thread title',
+      body: 'a thread body',
+      date: 'some date here',
+      username: 'RikiSanjaya',
+      comments: [
+        {
+          id: 'comment-123',
+          username: 'RikiSanjaya',
+          date: '2024',
+          content: '**komentar telah dihapus**',
+        },
+        {
+          id: 'comment-124',
+          username: 'RikiSanjaya',
+          date: '2024',
+          content: 'sebuah comment',
+        },
+      ],
+    };
+
     /** creating dependency of use case */
     const mockThreadRepository = new ThreadRepository();
     const mockCommentRepository = new CommentRepository();
 
     mockCommentRepository.getComments = jest.fn()
-      .mockImplementation(() => Promise.resolve([]));
+      .mockImplementation(() => Promise.resolve([
+        {
+          id: 'comment-123',
+          username: 'RikiSanjaya',
+          date: '2024',
+          content: '**komentar telah dihapus**',
+        },
+        {
+          id: 'comment-124',
+          username: 'RikiSanjaya',
+          date: '2024',
+          content: 'sebuah comment',
+        },
+      ]));
     mockThreadRepository.verifyThreadId = jest.fn()
       .mockImplementation(() => Promise.resolve());
     mockThreadRepository.getThread = jest.fn()
@@ -37,9 +72,7 @@ describe('GetThreadUseCase', () => {
     const gettedThread = await getThreadUseCase.execute(threadId);
 
     // Assert
-    expect(gettedThread).toStrictEqual(new GettedThread({
-      ...mockRawThread, comments: [],
-    }));
+    expect(gettedThread).toStrictEqual(new GettedThread(expectedGettedThread));
     expect(mockCommentRepository.getComments).toHaveBeenCalledWith('thread-123');
     expect(mockThreadRepository.verifyThreadId).toHaveBeenCalledWith('thread-123');
     expect(mockThreadRepository.getThread).toHaveBeenCalledWith('thread-123');

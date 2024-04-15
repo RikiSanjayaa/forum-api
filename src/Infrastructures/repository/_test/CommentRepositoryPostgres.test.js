@@ -23,7 +23,8 @@ describe('CommentRepositoryPostgres', () => {
       // Arrange
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', date: new Date().toISOString(), owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comments-123', date: new Date().toISOString(), owner: 'user-123' });
+      const date = new Date().toISOString();
+      await CommentsTableTestHelper.addComment({ id: 'comments-123', date, owner: 'user-123' });
       const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
 
       // Action
@@ -34,6 +35,7 @@ describe('CommentRepositoryPostgres', () => {
       expect(comments[0].id).toStrictEqual('comments-123');
       expect(comments[0].username).toStrictEqual('dicoding');
       expect(comments[0].content).toStrictEqual('a comment');
+      expect(comments[0].date).toStrictEqual(date);
       expect(comments[0].is_deleted).toBeFalsy();
     });
   });
