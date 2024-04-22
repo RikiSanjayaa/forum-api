@@ -57,7 +57,8 @@ server {
                 proxy_cache_bypass $http_upgrade;
         }
 
-        location /threads {
+        location ~ ^/threads/ {
+                proxy_pass http://localhost:5000;
                 limit_req zone=one;
         }
 
