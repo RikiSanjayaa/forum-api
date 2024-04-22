@@ -21,6 +21,7 @@ class GetThreadUseCase {
       return {
         id: comment.id,
         username: comment.username,
+        date: comment.date,
         content,
       };
     });

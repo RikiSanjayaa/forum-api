@@ -13,6 +13,7 @@ describe('GetThreadUseCase', () => {
       title: 'a thread title',
       body: 'a thread body',
       username: 'RikiSanjaya',
+      date: '2024-04-22T11:39:20.157Z',
     };
 
     const mockRawComments = [
@@ -21,12 +22,14 @@ describe('GetThreadUseCase', () => {
         username: 'RikiSanjaya',
         content: 'sebuah comment',
         is_deleted: true,
+        date: '2024-04-22T11:39:20.157Z',
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
         content: 'sebuah comment',
         is_deleted: false,
+        date: '2024-04-22T11:39:20.157Z',
       },
     ];
 
@@ -34,11 +37,13 @@ describe('GetThreadUseCase', () => {
       {
         id: 'comment-123',
         username: 'RikiSanjaya',
+        date: '2024-04-22T11:39:20.157Z',
         content: '**komentar telah dihapus**',
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
+        date: '2024-04-22T11:39:20.157Z',
         content: 'sebuah comment',
       },
     ];
@@ -48,6 +53,7 @@ describe('GetThreadUseCase', () => {
       title: 'a thread title',
       body: 'a thread body',
       username: 'RikiSanjaya',
+      date: '2024-04-22T11:39:20.157Z',
       comments: expectedComments,
     };
 
@@ -88,12 +94,14 @@ describe('GetThreadUseCase', () => {
         username: 'RikiSanjaya',
         content: 'sebuah comment',
         is_deleted: true,
+        date: '2024-04-22T11:39:20.157Z',
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
         content: 'sebuah comment',
         is_deleted: false,
+        date: '2024-04-22T11:39:20.157Z',
       },
     ];
 
@@ -115,11 +123,13 @@ describe('GetThreadUseCase', () => {
       {
         id: 'comment-123',
         username: 'RikiSanjaya',
+        date: '2024-04-22T11:39:20.157Z',
         content: '**komentar telah dihapus**',
       },
       {
         id: 'comment-124',
         username: 'RikiSanjaya',
+        date: '2024-04-22T11:39:20.157Z',
         content: 'sebuah comment',
       },
     ]);
